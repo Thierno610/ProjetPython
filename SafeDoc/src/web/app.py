@@ -1,7 +1,8 @@
 """
-Application Web SafeDoc
+Application Web SafeDoc 1.1
 Interface Streamlit moderne et sécurisée
 """
+# Force reload: 2026-01-22 16:38
 import sys
 from pathlib import Path
 
@@ -279,46 +280,56 @@ def page_dashboard():
     with st.sidebar:
         st.markdown(f"## 👤 {user.nom_utilisateur}")
         
-        if user.est_premium():
-            st.markdown("### ⭐ **Premium**")
-        else:
-            st.markdown("### 🆓 Gratuit")
+        tier_info = USER_TIERS[user.niveau]
+        badge_style = "color: #10B981; border: 1px solid #10B981; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;"
+        st.markdown(f'<span style="{badge_style}">{tier_info["name"]}</span>', unsafe_allow_html=True)
         
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        # --- GROUPE : PRINCIPAL ---
+        st.markdown("### 🏠 PRINCIPAL")
+        if st.button("📊 Dashboard", use_container_width=True):
+            st.session_state.page = 'dashboard'
+            st.rerun()
+        
+        if st.button("📤 Nouveau Document", use_container_width=True):
+            st.session_state.page = 'upload'
+            st.rerun()
+            
+        if st.button("📚 Bibliothèque", use_container_width=True):
+            st.session_state.page = 'bibliotheque'
+            st.rerun()
+
+        # --- GROUPE : ORGANISATION ---
+        st.markdown("### 📂 ORGANISATION")
+        if st.button("🏷️ Étiquettes (Tags)", use_container_width=True):
+            st.session_state.page = 'etiquettes'
+            st.rerun()
+            
+        # --- GROUPE : ANALYSE ---
+        st.markdown("### 📈 ANALYSE")
+        if st.button("📉 Statistiques", use_container_width=True):
+            st.session_state.page = 'statistiques'
+            st.rerun()
+            
         st.markdown("---")
         
-        # Statistiques de stockage
+        # Statistiques de stockage compactes
         pourcentage = user.pourcentage_stockage()
         stockage_mb = user.stockage_utilise / (1024 * 1024)
         limite_mb = user.obtenir_limite_stockage() / (1024 * 1024)
         
-        st.markdown("### 💾 Stockage")
+        st.markdown(f"**💾 Stockage : {stockage_mb:.1f} MB** / {limite_mb:.0f} MB")
         st.progress(min(pourcentage / 100, 1.0))
-        st.markdown(f"**{stockage_mb:.1f} MB** / {limite_mb:.0f} MB")
-        
-        st.markdown("---")
-        
-        # Navigation
-        st.markdown("### 📋 Navigation")
-        if st.button("🏠 Dashboard", use_container_width=True):
-            st.session_state.page = 'dashboard'
-            st.rerun()
-        
-        if st.button("📤 Téléverser", use_container_width=True):
-            st.session_state.page = 'upload'
-            st.rerun()
-        
-        if st.button("📚 Bibliothèque", use_container_width=True):
-            st.session_state.page = 'bibliotheque'
-            st.rerun()
         
         if not user.est_premium():
             st.markdown("---")
-            if st.button("⭐ Passer Premium", use_container_width=True, type="primary"):
+            if st.button("⭐ PASSER AU PREMIUM", use_container_width=True, type="primary"):
                 st.session_state.page = 'premium'
                 st.rerun()
         
         st.markdown("---")
-        st.info("💡 Mode accès direct activé (sans connexion)")
+        st.caption("🛡️ SafeDoc v1.0 - Accès Direct")
     
     # Contenu principal selon la page
     if st.session_state.page == 'dashboard':
@@ -331,6 +342,10 @@ def page_dashboard():
         afficher_page_premium()
     elif st.session_state.page == 'voir_document':
         afficher_voir_document()
+    elif st.session_state.page == 'etiquettes':
+        afficher_page_etiquettes()
+    elif st.session_state.page == 'statistiques':
+        afficher_page_statistiques()
 
 def afficher_dashboard():
     """Affiche le tableau de bord avec une esthétique professionnelle"""
@@ -479,7 +494,7 @@ def afficher_bibliotheque():
     st.markdown("# 📚 Bibliothèque de Documents")
     
     # Filtres
-    col1, col2 = st.columns([3, 1])
+    col1, col2, col3 = st.columns([3, 1, 1])
     
     with col1:
         recherche = st.text_input("🔍 Rechercher", placeholder="Nom, catégorie...")
@@ -487,6 +502,11 @@ def afficher_bibliotheque():
     with col2:
         from config.config import DOCUMENT_CATEGORIES
         cat_filtre = st.selectbox("🏷️ Catégorie", ["Toutes"] + DOCUMENT_CATEGORIES)
+        
+    with col3:
+        etiquettes_dispo = gestionnaire_bdd.obtenir_toutes_etiquettes()
+        noms_etiquettes = ["Toutes"] + [et.nom for et in etiquettes_dispo]
+        tag_filtre = st.selectbox("🏷️ Étiquette", noms_etiquettes)
     
     # Récupérer les documents
     user_id = st.session_state.utilisateur.id
@@ -496,9 +516,16 @@ def afficher_bibliotheque():
     else:
         documents = gestionnaire_bdd.obtenir_documents_utilisateur(user_id)
     
+    # Filtrer par étiquette
+    if tag_filtre != "Toutes":
+        documents = [d for d in documents if tag_filtre in [et.nom for et in d.etiquettes]]
+    
     # Filtrer par recherche
     if recherche:
-        documents = [d for d in documents if recherche.lower() in d.nom.lower() or recherche.lower() in d.categorie.lower()]
+        documents = [d for d in documents if 
+                     recherche.lower() in d.nom.lower() or 
+                     recherche.lower() in d.categorie.lower() or
+                     any(recherche.lower() in et.nom.lower() for et in d.etiquettes)]
     
     st.markdown(f"**{len(documents)} document(s) trouvé(s)**")
     st.markdown("---")
@@ -510,6 +537,12 @@ def afficher_bibliotheque():
             
             with col1:
                 st.markdown(f"**📄 {doc.nom}**")
+                # Affichage des tags sous le nom
+                if doc.etiquettes:
+                    tags_html = ""
+                    for et in doc.etiquettes:
+                        tags_html += f'<span style="background: {et.couleur}; color: white; padding: 1px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">{et.nom}</span>'
+                    st.markdown(tags_html, unsafe_allow_html=True)
             
             with col2:
                 st.markdown(f"🏷️ {doc.categorie}")
@@ -559,6 +592,33 @@ def afficher_voir_document():
         st.markdown(f"**🏷️ Catégorie :** {doc.categorie}")
         st.markdown(f"**📅 Ajouté le :** {doc.date_ajoute.strftime('%d/%m/%Y')}")
         
+        # Gestion des Étiquettes (Tags)
+        st.markdown("#### 🏷️ Étiquettes")
+        etiquettes_dispo = gestionnaire_bdd.obtenir_toutes_etiquettes()
+        noms_etiquettes_dispo = [et.nom for et in etiquettes_dispo]
+        noms_etiquettes_actuelles = [et.nom for et in doc.etiquettes]
+        
+        selection = st.multiselect(
+            "Gérer les étiquettes",
+            options=noms_etiquettes_dispo,
+            default=noms_etiquettes_actuelles
+        )
+        
+        # Appliquer les changements si la sélection change
+        if set(selection) != set(noms_etiquettes_actuelles):
+            # Ajouter les nouvelles
+            for nom in selection:
+                if nom not in noms_etiquettes_actuelles:
+                    et_id = next(et.id for et in etiquettes_dispo if et.nom == nom)
+                    gestionnaire_bdd.ajouter_etiquette_a_document(doc.id, et_id)
+            
+            # Retirer les décochées
+            for nom in noms_etiquettes_actuelles:
+                if nom not in selection:
+                    et_id = next(et.id for et in etiquettes_dispo if et.nom == nom)
+                    gestionnaire_bdd.retirer_etiquette_de_document(doc.id, et_id)
+            st.rerun()
+            
         if doc.metadonnees:
             st.markdown("#### 🔍 Données extraites")
             for k, v in doc.metadonnees.items():
@@ -630,6 +690,101 @@ def afficher_page_premium():
         
         if st.button("🚀 Activer Premium", type="primary", use_container_width=True):
             st.info("💡 Fonctionnalité de paiement à implémenter")
+
+
+def afficher_page_etiquettes():
+    """Page de gestion des étiquettes (Tags)"""
+    st.markdown("# 🏷️ Gestion des Étiquettes")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### ✨ Nouvelle Étiquette")
+        nom = st.text_input("Nom de l'étiquette", placeholder="Ex: Urgent, Travail...")
+        couleur = st.color_picker("Couleur", "#3B82F6")
+        
+        if st.button("➕ Créer", use_container_width=True, type="primary"):
+            if nom:
+                etiquette = gestionnaire_bdd.creer_etiquette(nom, couleur)
+                if etiquette:
+                    st.success(f"Étiquette '{nom}' créée !")
+                    st.rerun()
+            else:
+                st.warning("Veuillez saisir un nom.")
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with col2:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### 📋 Étiquettes existantes")
+        etiquettes = gestionnaire_bdd.obtenir_toutes_etiquettes()
+        
+        if not etiquettes:
+            st.info("Aucune étiquette créée pour le moment.")
+        else:
+            for et in etiquettes:
+                c1, c2, c3 = st.columns([1, 4, 1])
+                with c1:
+                    st.markdown(f'<div style="width: 20px; height: 20px; border-radius: 50%; background: {et.couleur}; margin-top: 5px;"></div>', unsafe_allow_html=True)
+                with c2:
+                    st.markdown(f"**{et.nom}**")
+                with c3:
+                    if st.button("🗑️", key=f"del_et_{et.id}"):
+                        if gestionnaire_bdd.supprimer_etiquette(et.id):
+                            st.rerun()
+                st.markdown("<hr style='margin: 5px 0; border: 0.1px solid rgba(148,163,184,0.1);'>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+def afficher_page_statistiques():
+    """Page de statistiques et analyses"""
+    st.markdown("# 📈 Statistiques & Analyses")
+    
+    user = st.session_state.utilisateur
+    documents = gestionnaire_bdd.obtenir_documents_utilisateur(user.id)
+    
+    if not documents:
+        st.info("Aucune donnée disponible pour l'analyse. Téléversez des documents d'abord.")
+        return
+        
+    # Métriques globales
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Documents", len(documents))
+    with col2:
+        types = len(set(d.categorie for d in documents))
+        st.metric("Catégories", types)
+    with col3:
+        poids = sum(d.taille_fichier for d in documents) / (1024 * 1024)
+        st.metric("Poids Total", f"{poids:.1f} MB")
+        
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col_a, col_b = st.columns(2)
+    
+    with col_a:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### 📊 Répartition par Catégorie")
+        cat_counts = {}
+        for d in documents:
+            cat_counts[d.categorie] = cat_counts.get(d.categorie, 0) + 1
+        
+        for cat, count in cat_counts.items():
+            pourcent = (count / len(documents)) * 100
+            st.markdown(f"**{cat}** ({count})")
+            st.progress(pourcent / 100)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+    with col_b:
+        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+        st.markdown("### 💾 Utilisation du Stockage")
+        pourcent_stockage = user.pourcentage_stockage()
+        st.markdown(f"**Espace utilisé : {pourcent_stockage:.1f}%**")
+        st.progress(pourcent_stockage / 100)
+        
+        restant = (user.obtenir_limite_stockage() - user.stockage_utilise) / (1024 * 1024)
+        st.caption(f"Il vous reste {restant:.1f} MB d'espace sécurisé.")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def main():

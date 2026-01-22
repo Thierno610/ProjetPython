@@ -367,6 +367,90 @@ class GestionnaireBaseDeDonnees:
         finally:
             session.close()
 
+    def creer_etiquette(self, nom: str, couleur: str = "#3B82F6") -> Optional[EtiquetteDB]:
+        """Crée une nouvelle étiquette"""
+        session = self.obtenir_session()
+        try:
+            # Vérifier si elle existe déjà
+            existe = session.query(EtiquetteDB).filter_by(nom=nom).first()
+            if existe:
+                return existe
+            
+            etiquette = EtiquetteDB(nom=nom, couleur=couleur)
+            session.add(etiquette)
+            session.commit()
+            session.refresh(etiquette)
+            return etiquette
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur création étiquette: {e}")
+            return None
+        finally:
+            session.close()
+
+    def obtenir_toutes_etiquettes(self) -> List[EtiquetteDB]:
+        """Récupère toutes les étiquettes"""
+        session = self.obtenir_session()
+        try:
+            return session.query(EtiquetteDB).all()
+        finally:
+            session.close()
+
+    def supprimer_etiquette(self, etiquette_id: int) -> bool:
+        """Supprime une étiquette"""
+        session = self.obtenir_session()
+        try:
+            etiquette = session.query(EtiquetteDB).filter_by(id=etiquette_id).first()
+            if etiquette:
+                session.delete(etiquette)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur suppression étiquette: {e}")
+            return False
+        finally:
+            session.close()
+
+    def ajouter_etiquette_a_document(self, document_id: int, etiquette_id: int) -> bool:
+        """Associe une étiquette à un document"""
+        session = self.obtenir_session()
+        try:
+            document = session.query(DocumentDB).filter_by(id=document_id).first()
+            etiquette = session.query(EtiquetteDB).filter_by(id=etiquette_id).first()
+            
+            if document and etiquette and etiquette not in document.etiquettes:
+                document.etiquettes.append(etiquette)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur association étiquette: {e}")
+            return False
+        finally:
+            session.close()
+
+    def retirer_etiquette_de_document(self, document_id: int, etiquette_id: int) -> bool:
+        """Retire une étiquette d'un document"""
+        session = self.obtenir_session()
+        try:
+            document = session.query(DocumentDB).filter_by(id=document_id).first()
+            etiquette = session.query(EtiquetteDB).filter_by(id=etiquette_id).first()
+            
+            if document and etiquette and etiquette in document.etiquettes:
+                document.etiquettes.remove(etiquette)
+                session.commit()
+                return True
+            return False
+        except Exception as e:
+            session.rollback()
+            logger.error(f"Erreur retrait étiquette: {e}")
+            return False
+        finally:
+            session.close()
+
 
 # Instance globale
 gestionnaire_bdd = GestionnaireBaseDeDonnees()
