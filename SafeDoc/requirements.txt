@@ -3,6 +3,7 @@ Pillow
 pdf2image
 
 spacy
+https://github.com/explosion/spacy-models/releases/download/fr_core_news_md-3.7.0/fr_core_news_md-3.7.0-py3-none-any.whl
 nltk
 
 cryptography
@@ -16,7 +17,7 @@ alembic
 
 PyPDF2
 reportlab
-python-magic-bin
+python-magic
 
 google-cloud-storage
 google-auth
