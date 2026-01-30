@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Bibliothèque - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-book me-3"></i>Bibliothèque de Documents</h1>
+    
+    <!-- Filtres -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="recherche" class="form-label">🔍 Rechercher</label>
+                <input type="text" class="form-control" id="recherche" placeholder="Nom, catégorie..." value="{{ recherche }}">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="categorie" class="form-label">🏷️ Catégorie</label>
+                <select class="form-select" id="categorie">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if cat == cat_filtre %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="etiquette" class="form-label">🏷️ Étiquette</label>
+                <select class="form-select" id="etiquette">
+                    {% for et in etiquettes %}
+                        <option value="{{ et }}" {% if et == tag_filtre %}selected{% endif %}>{{ et }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="form-label">&nbsp;</label><br>
+                <button type="button" class="btn btn-primary w-100" onclick="appliquerFiltres()">
+                    <i class="fas fa-filter me-2"></i>Filtrer
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <span class="badge bg-info">{{ documents|length }} document(s) trouvé(s)</span>
+    </div>
+    
+    {% if documents %}
+        {% for doc in documents %}
+            <div class="document-row">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <h5 class="mb-1">📄 {{ doc.nom }}</h5>
+                        {% if doc.etiquettes %}
+                            {% for et in doc.etiquettes %}
+                                <span class="tag" style="background: {{ et.couleur }};">{{ et.nom }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2">
+                        <span class="badge bg-secondary">🏷️ {{ doc.categorie }}</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted">📅 {{ doc.date_upload.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted">💾 {{ "%.2f"|format(doc.taille_fichier / 1024 / 1024) }} MB</small>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <div class="btn-group" role="group">
+                            <a href="{{ url_for('voir_document', doc_id=doc.id) }}" class="btn btn-action btn-sm" title="Voir">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('supprimer_document', doc_id=doc.id) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">
+                                <button type="submit" class="btn btn-action btn-sm text-danger" title="Supprimer">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Aucun document trouvé</h4>
+            <p class="text-muted">
+                {% if recherche or cat_filtre != 'Toutes' or tag_filtre != 'Toutes' %}
+                    Essayez de modifier vos filtres pour voir plus de résultats.
+                {% else %}
+                    Commencez par téléverser vos premiers documents !
+                {% endif %}
+            </p>
+            {% if not recherche and cat_filtre == 'Toutes' and tag_filtre == 'Toutes' %}
+                <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                    <i class="fas fa-upload me-2"></i>Téléverser un document
+                </a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function appliquerFiltres() {
+    const recherche = document.getElementById('recherche').value;
+    const categorie = document.getElementById('categorie').value;
+    const etiquette = document.getElementById('etiquette').value;
+    
+    const params = new URLSearchParams();
+    if (recherche) params.append('recherche', recherche);
+    if (categorie !== 'Toutes') params.append('categorie', categorie);
+    if (etiquette !== 'Toutes') params.append('etiquette', etiquette);
+    
+    window.location.href = '{{ url_for("bibliotheque") }}?' + params.toString();
+}
+
+// Appliquer les filtres avec Enter
+document.getElementById('recherche').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        appliquerFiltres();
+    }
+});
+
+document.getElementById('categorie').addEventListener('change', appliquerFiltres);
+document.getElementById('etiquette').addEventListener('change', appliquerFiltres);
+</script>
+{% endblock %}

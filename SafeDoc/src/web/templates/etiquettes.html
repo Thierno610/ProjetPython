@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Étiquettes - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-tags me-3"></i>Gestion des Étiquettes</h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="glass-card">
+                <h3><i class="fas fa-plus me-2"></i>Nouvelle Étiquette</h3>
+                
+                <form method="POST" action="{{ url_for('etiquettes') }}">
+                    <input type="hidden" name="action" value="creer">
+                    <div class="mb-3">
+                        <label for="nom" class="form-label">Nom de l'étiquette</label>
+                        <input type="text" class="form-control" id="nom" name="nom" 
+                               placeholder="Ex: Urgent, Travail..." required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="couleur" class="form-label">Couleur</label>
+                        <input type="color" class="color-picker" id="couleur" name="couleur" value="#3B82F6">
+                        <small class="form-text text-muted">Choisissez une couleur pour l'étiquette</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-plus me-2"></i>Créer
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="glass-card">
+                <h3><i class="fas fa-list me-2"></i>Étiquettes existantes</h3>
+                
+                {% if etiquettes %}
+                    {% for etiquette in etiquettes %}
+                        <div class="document-row">
+                            <div class="row align-items-center">
+                                <div class="col-md-1">
+                                    <div style="width: 30px; height: 30px; border-radius: 50%; background: {{ etiquette.couleur }};"></div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h5 class="mb-0">{{ etiquette.nom }}</h5>
+                                    <small class="text-muted">{{ etiquette.couleur }}</small>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <form method="POST" action="{{ url_for('etiquettes') }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette étiquette ?');">
+                                        <input type="hidden" name="action" value="supprimer">
+                                        <input type="hidden" name="etiquette_id" value="{{ etiquette.id }}">
+                                        <button type="submit" class="btn btn-action btn-sm text-danger">
+                                            <i class="fas fa-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">Aucune étiquette créée</h4>
+                        <p class="text-muted">Commencez par créer votre première étiquette pour organiser vos documents.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

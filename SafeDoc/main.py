@@ -28,17 +28,13 @@ def initialiser_application():
 
 
 def lancer_interface_web():
-    """Lance l'interface web Streamlit"""
-    logger.info("Lancement de l'interface web...")
-    logger.info("URL: http://localhost:8501")
+    """Lance l'interface web Flask"""
+    logger.info("Lancement de l'interface web Flask...")
+    logger.info("URL: http://localhost:5000")
     logger.info("Appuyez sur Ctrl+C pour arrêter")
     
-    import subprocess
-    subprocess.run([
-        sys.executable, "-m", "streamlit", "run",
-        "src/web/app.py",
-        "--server.headless=true"
-    ])
+    from src.web.app_flask import app
+    app.run(debug=True, host='0.0.0.0', port=5000)
 
 
 def main():
@@ -50,7 +46,7 @@ def main():
     print("🔒 SAFEDOC - Coffre-fort Numérique Intelligent")
     print("=" * 60)
     print("\nChoisissez une option :")
-    print("1. Lancer l'interface Web (Streamlit)")
+    print("1. Lancer l'interface Web (Flask)")
     print("2. Quitter")
     print()
     

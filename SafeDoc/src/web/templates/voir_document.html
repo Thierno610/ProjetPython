@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.nom }} - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-eye me-3"></i>Visualisation : {{ document.nom }}</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <h3><i class="fas fa-info-circle me-2"></i>Informations</h3>
+                
+                <div class="mb-3">
+                    <strong>🏷️ Catégorie :</strong> {{ document.categorie }}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>📅 Ajouté le :</strong> {{ document.date_ajoute.strftime('%d/%m/%Y') }}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>💾 Taille :</strong> {{ "%.2f"|format(document.taille_fichier / 1024 / 1024) }} MB
+                </div>
+                
+                <!-- Gestion des étiquettes -->
+                <div class="mb-4">
+                    <h4><i class="fas fa-tags me-2"></i>Étiquettes</h4>
+                    <form method="POST" action="{{ url_for('mettre_a_jour_etiquettes', doc_id=document.id) }}">
+                        <div class="mb-3">
+                            {% for etiquette in etiquettes_dispo %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="etiquettes" 
+                                           value="{{ etiquette.nom }}" id="et_{{ etiquette.id }}"
+                                           {% if etiquette in document.etiquettes %}checked{% endif %}>
+                                    <label class="form-check-label" for="et_{{ etiquette.id }}">
+                                        <span class="tag" style="background: {{ etiquette.couleur }};">{{ etiquette.nom }}</span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-save me-2"></i>Mettre à jour
+                        </button>
+                    </form>
+                </div>
+                
+                {% if document.metadonnees %}
+                <div class="mb-4">
+                    <h4><i class="fas fa-database me-2"></i>Données extraites</h4>
+                    {% for key, value in document.metadonnees.items() %}
+                        <div class="mb-2">
+                            <strong>{{ key }} :</strong> {{ value }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="glass-card">
+                <h3><i class="fas fa-lock me-2"></i>Accès Sécurisé</h3>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Ce document est chiffré. Utilisez votre clé maître pour le récupérer.
+                </div>
+                
+                <form method="POST" action="{{ url_for('telecharger_document', doc_id=document.id) }}">
+                    <div class="mb-3">
+                        <label for="mot_de_passe_chiffrement" class="form-label">Clé de chiffrement</label>
+                        <input type="password" class="form-control" id="mot_de_passe_chiffrement" 
+                               name="mot_de_passe_chiffrement" placeholder="Entrez votre clé de déchiffrement">
+                        <small class="form-text text-muted">
+                            Si vous avez configuré une clé maître, elle sera utilisée automatiquement
+                        </small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="fas fa-unlock me-2"></i>Déchiffrer et Télécharger
+                    </button>
+                </form>
+                
+                <div class="mt-3">
+                    <a href="{{ url_for('bibliotheque') }}" class="btn btn-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Retour à la bibliothèque
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

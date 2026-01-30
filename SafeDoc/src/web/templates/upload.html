@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Téléverser - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-upload me-3"></i>Téléverser un Document</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <h3><i class="fas fa-file-upload me-2"></i>Sélectionnez votre document</h3>
+                    <div class="form-group">
+                        <label for="file" class="form-label">Choisissez un fichier</label>
+                        <input type="file" class="form-control" id="file" name="file" 
+                               accept=".pdf,.png,.jpg,.jpeg,.tiff,.bmp" required>
+                        <small class="form-text text-muted">
+                            Formats supportés: PDF, PNG, JPG, TIFF, BMP (max 16MB)
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="nom_personnalise" class="form-label">Nom du document (optionnel)</label>
+                    <input type="text" class="form-control" id="nom_personnalise" name="nom_personnalise" 
+                           placeholder="Laissez vide pour utiliser le nom original">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-lock me-2"></i>Traiter et Sauvegarder
+                </button>
+            </form>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="glass-card">
+                <h4><i class="fas fa-info-circle me-2"></i>Informations</h4>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>OCR automatique</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Classification intelligente</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Chiffrement AES-256</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Extraction de métadonnées</li>
+                </ul>
+                
+                <div class="alert alert-success mt-3">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Vos documents sont sécurisés avec un chiffrement de niveau militaire
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Résultats du traitement -->
+{% if succes and infos %}
+<div class="glass-card mt-4">
+    <h2><i class="fas fa-check-circle text-success me-2"></i>Document traité avec succès !</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="metric-card">
+                <h5>🏷️ Catégorie détectée</h5>
+                <p class="h4">{{ infos.get('categorie', 'N/A') }}</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="metric-card">
+                <h5>📊 Confiance</h5>
+                <p class="h4">{{ "%.0f"|format(infos.get('confiance_categorie', 0) * 100) }}%</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="metric-card">
+                <h5>🔍 Qualité OCR</h5>
+                <p class="h4">{{ "%.0f"|format(infos.get('confiance_ocr', 0)) }}%</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="metric-card">
+                <h5>💾 Taille</h5>
+                <p class="h4">{{ "%.2f"|format(infos.get('taille', 0) / 1024 / 1024) }} MB</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if infos.get('texte_extrait') %}
+    <div class="mt-4">
+        <h4><i class="fas fa-file-alt me-2"></i>Aperçu du texte extrait</h4>
+        <div class="glass-card" style="background: rgba(15, 23, 42, 0.8); max-height: 300px; overflow-y: auto;">
+            <pre class="text-light mb-0" style="white-space: pre-wrap; font-family: monospace;">{{ infos.texte_extrait[:500] }}{% if infos.texte_extrait|length > 500 %}...{% endif %}</pre>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('bibliotheque') }}" class="btn btn-primary">
+            <i class="fas fa-book me-2"></i>Voir la bibliothèque
+        </a>
+        <a href="{{ url_for('upload') }}" class="btn btn-success ms-2">
+            <i class="fas fa-plus me-2"></i>Ajouter un autre document
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const nomPersonnalise = document.getElementById('nom_personnalise');
+        if (!nomPersonnalise.value) {
+            // Enlever l'extension
+            const nomSansExtension = file.name.replace(/\.[^/.]+$/, "");
+            nomPersonnalise.value = nomSansExtension;
+        }
+    }
+});
+</script>
+{% endblock %}

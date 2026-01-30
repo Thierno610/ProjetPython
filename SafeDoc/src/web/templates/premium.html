@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Premium - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-star me-3"></i>Passez à Premium</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="glass-card">
+                <div class="text-center">
+                    <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                    <h3>🆓 Gratuit</h3>
+                    <div class="text-success h4 mb-3">0€</div>
+                </div>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Stockage local illimité</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>OCR et classification</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Chiffrement AES-256</li>
+                    <li class="mb-2"><i class="fas fa-times text-danger me-2"></i>Pas de synchronisation cloud</li>
+                    <li class="mb-2"><i class="fas fa-times text-danger me-2"></i>500 MB maximum</li>
+                </ul>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Parfait pour un usage personnel et local
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="glass-card" style="border: 2px solid var(--accent-emerald);">
+                <div class="text-center">
+                    <i class="fas fa-crown fa-3x text-warning mb-3"></i>
+                    <h3>⭐ Premium</h3>
+                    <div class="text-warning h4 mb-3">9.99€ / mois</div>
+                </div>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Tout ce qui est gratuit</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Synchronisation Google Drive</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Sauvegarde automatique</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Accès multi-appareils</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>50 GB de stockage</li>
+                    <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Support prioritaire</li>
+                </ul>
+                
+                <div class="alert alert-success">
+                    <i class="fas fa-star me-2"></i>
+                    Idéal pour les professionnels et entreprises
+                </div>
+                
+                <button class="btn btn-success w-100 btn-lg" onclick="alert('Fonctionnalité de paiement à implémenter')">
+                    <i class="fas fa-rocket me-2"></i>Activer Premium
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-card mt-4">
+        <h3><i class="fas fa-shield-alt me-2"></i>Pourquoi passer Premium ?</h3>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-cloud fa-2x text-primary"></i>
+                    <h5 class="mt-2">Synchronisation Cloud</h5>
+                    <p class="text-muted">Accédez à vos documents depuis n'importe où avec Google Drive</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-history fa-2x text-primary"></i>
+                    <h5 class="mt-2">Sauvegarde Auto</h5>
+                    <p class="text-muted">Vos documents sont automatiquement sauvegardés et sécurisés</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-mobile-alt fa-2x text-primary"></i>
+                    <h5 class="mt-2">Multi-appareils</h5>
+                    <p class="text-muted">Utilisez SafeDoc sur votre ordinateur, tablette et smartphone</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour au dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

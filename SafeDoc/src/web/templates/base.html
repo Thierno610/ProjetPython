@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeDoc – Coffre-fort numérique</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SafeDoc CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/safedoc.css') }}">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">
+                <i class="fas fa-shield-alt"></i>
+                <span class="ms-2">SafeDoc</span>
+            </a>
+            <span class="navbar-text">
+                <span class="badge bg-secondary me-3">
+                    <span id="user-level">Chargement...</span>
+                </span>
+                <i class="fas fa-user me-2"></i>
+                <span id="user-name">Chargement...</span>
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="nav-section">
+                    <h6 class="nav-section-title">Principal</h6>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span>Tableau de bord</span>
+                        </a>
+                        <a class="nav-link" href="/upload">
+                            <i class="fas fa-upload"></i>
+                            <span>Nouveau document</span>
+                        </a>
+                        <a class="nav-link" href="/bibliotheque">
+                            <i class="fas fa-book"></i>
+                            <span>Bibliothèque</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="nav-section">
+                    <h6 class="nav-section-title">Organisation</h6>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/etiquettes">
+                            <i class="fas fa-tags"></i>
+                            <span>Étiquettes</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="nav-section">
+                    <h6 class="nav-section-title">Analyse</h6>
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="/statistiques">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Statistiques</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="mt-4">
+                    <div class="storage-info mb-2">
+                        <i class="fas fa-hdd me-2"></i>
+                        Stockage : <span id="storage-amount">Chargement...</span> Mo
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar"
+                             id="storage-bar"
+                             style="width:0%;"
+                             aria-valuenow="0"
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                    <a href="/premium" class="btn btn-warning text-dark btn-sm mt-3 w-100" id="premium-btn" style="display:none;">
+                        <i class="fas fa-star me-2"></i>Passer en Premium
+                    </a>
+                </div>
+
+                <div class="mt-4 pt-4 border-top border-secondary">
+                    <a href="#" class="nav-link text-danger" onclick="SafeDoc.logout(); return false;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Déconnexion</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 main-content">
+                <!-- Flash Messages Container -->
+                <div id="flash-messages"></div>
+
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SafeDoc JavaScript Stabilisé -->
+    <script src="{{ url_for('static', filename='js/safedoc_stable.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -9,8 +9,8 @@ nltk
 cryptography
 bcrypt
 
-streamlit
-streamlit-option-menu
+Flask
+Werkzeug
 
 sqlalchemy
 alembic

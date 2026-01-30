@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Statistiques - SafeDoc{% endblock %}
+
+{% block content %}
+<div class="glass-card">
+    <h1><i class="fas fa-chart-bar me-3"></i>Statistiques & Analyses</h1>
+    
+    {% if documents %}
+        <!-- Métriques globales -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ documents|length }}</div>
+                    <div class="metric-label">Total Documents</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ types_categories }}</div>
+                    <div class="metric-label">Catégories</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="metric-card">
+                    <div class="metric-value">{{ "%.1f"|format(poids_total) }} MB</div>
+                    <div class="metric-label">Poids Total</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="glass-card">
+                    <h3><i class="fas fa-chart-pie me-2"></i>Répartition par Catégorie</h3>
+                    
+                    {% for categorie, count in cat_counts.items() %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span><strong>{{ categorie }}</strong> ({{ count }})</span>
+                                <span>{{ "%.0f"|format((count / documents|length) * 100) }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar" style="width: {{ (count / documents|length) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="glass-card">
+                    <h3><i class="fas fa-hdd me-2"></i>Utilisation du Stockage</h3>
+                    
+                    <div class="mb-3">
+                        <h4>Espace utilisé : {{ "%.1f"|format(user.pourcentage_stockage()) }}%</h4>
+                        <div class="progress" style="height: 15px;">
+                            <div class="progress-bar" style="width: {{ user.pourcentage_stockage() }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Il vous reste {{ "%.1f"|format((user.obtenir_limite_stockage() - user.stockage_utilise) / 1024 / 1024) }} MB d'espace sécurisé.
+                    </div>
+                    
+                    {% if not user.est_premium() %}
+                        <div class="mt-3">
+                            <a href="{{ url_for('premium') }}" class="btn btn-success w-100">
+                                <i class="fas fa-star me-2"></i>Passer Premium pour plus d'espace
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Analyse temporelle -->
+        <div class="glass-card mt-4">
+            <h3><i class="fas fa-calendar me-2"></i>Activité Récente</h3>
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Aucune donnée disponible</h4>
+            <p class="text-muted">Téléversez des documents pour voir vos statistiques.</p>
+            <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                <i class="fas fa-upload me-2"></i>Téléverser un document
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if documents %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Préparer les données pour le graphique d'activité
+const documents = {{ documents|tojson }};
+const activityData = {};
+
+// Regrouper par mois
+documents.forEach(doc => {
+    const date = new Date(doc.date_upload);
+    const monthYear = date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' });
+    activityData[monthYear] = (activityData[monthYear] || 0) + 1;
+});
+
+// Créer le graphique
+const ctx = document.getElementById('activityChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: Object.keys(activityData),
+        datasets: [{
+            label: 'Documents ajoutés',
+            data: Object.values(activityData),
+            borderColor: '#3B82F6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            borderWidth: 2,
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#CBD5E1'
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: {
+                    color: '#CBD5E1'
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.1)'
+                }
+            },
+            y: {
+                ticks: {
+                    color: '#CBD5E1'
+                },
+                grid: {
+                    color: 'rgba(148, 163, 184, 0.1)'
+                }
+            }
+        }
+    }
+});
+</script>
+{% endif %}
+{% endblock %}
